@@ -305,8 +305,7 @@ class TestComments(unittest.TestCase):
         rv = loads(rv.data)
 
         for key in comments.API.FIELDS:
-            if key in rv:
-                rv.pop(key)
+            rv.pop(key)
 
         self.assertListEqual(list(rv.keys()), [])
 

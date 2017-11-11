@@ -106,14 +106,6 @@ scheme is based in `this color palette <http://colrd.com/palette/19308/>`_.
 Multiple colors must be separated by space. If you use less than eight colors
 and not a multiple of 2, the color distribution is not even.
 
-data-isso-gravatar
-------------------
-
-Uses gravatar images instead of generating svg images. You have to set 
-"data-isso-avatar" to **false** when you want to use this. Otherwise
-both the gravatar and avatar svg image will show up. Please also set
-option "gravatar" to **true** in the server configuration...
-
 data-isso-vote
 --------------
 
@@ -132,3 +124,14 @@ For example, the value `"-5,5"` will cause each `isso-comment` to be given one o
 - `isso-vote-level-2` for scores of `5` and greater
 
 These classes can then be used to customize the appearance of comments (eg. put a star on popular comments)
+
+data-isso-id
+------------
+
+Set a custom thread id, defaults to current URI. This attribute needs
+to be used with the data-title attribute in order to work.
+If you use a comment counter, add this attribute to the link tag, too.
+
+.. code-block:: html
+
+    <section data-title="Yay!" data-isso-id="test.abc" id="isso-thread"></section>

@@ -3,7 +3,7 @@
     -moz-box-sizing: border-box;
     box-sizing: border-box;
 }
-#isso-thread .isso-comment-header a {
+#isso-thread a {
     text-decoration: none;
 }
 
