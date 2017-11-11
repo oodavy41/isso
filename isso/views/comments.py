@@ -22,6 +22,7 @@ from isso import utils, local
 from isso.utils import http, parse, JSONResponse as JSON
 from isso.views import requires
 from isso.utils.hash import sha1
+from isso.utils.hash import md5
 
 # from Django appearently, looks good to me *duck*
 __url_re = re.compile(
