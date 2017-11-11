@@ -109,5 +109,4 @@ def new(conf):
         return Hash(salt, algorithm)
 
 
-sha1 = Hash(func="sha1").uhash
-md5 = Hash(func="md5").uhash
+sha1 = Hash(func="sha1").uhashmd5 = Hash(func="md5").uhash

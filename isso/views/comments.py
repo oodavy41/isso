@@ -438,7 +438,6 @@ class API(object):
 
         gravatar_url = self.conf.get('gravatar-url')
         item['gravatar_image'] = gravatar_url.format(email_md5_hash)
-
         return item
     def _process_fetched_list(self, fetched_list, plain=False):
         for item in fetched_list:
