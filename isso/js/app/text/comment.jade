@@ -1,4 +1,4 @@
-div(class='isso-comment' id='isso-#{comment.id}')
+div(class=(comment.hash == conf.blogauthor) ? 'isso-comment isso-highlight' : 'isso-comment' id='isso-#{comment.id}')
     if conf.gravatar
         div(class='avatar')
             img(src='#{comment.gravatar_image}')
