@@ -70,7 +70,8 @@ define(["app/dom", "app/utils", "app/config", "app/api", "app/jade", "app/i18n",
                 author: author, email: email, website: website,
                 text: utils.text($(".textarea", el).innerHTML),
                 parent: parent || null,
-                title: $("#isso-thread").getAttribute("data-title") || null
+                title: $("#isso-thread").getAttribute("data-title") || null,
+                notification: $("[name=notification]", el).checked ? 1 : 0
             }).then(function(comment) {
                 $(".textarea", el).innerHTML = "";
                 $(".textarea", el).blur();
