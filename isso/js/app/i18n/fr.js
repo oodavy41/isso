@@ -4,11 +4,8 @@ define({
     "postbox-email": "Courriel (optionnel)",
     "postbox-website": "Site web (optionnel)",
     "postbox-submit": "Soumettre",
-    "postbox-notification": "S'abonner aux notifications de réponses",
-
     "num-comments": "{{ n }} commentaire\n{{ n }} commentaires",
     "no-comments": "Aucun commentaire pour l'instant",
-
     "comment-reply": "Répondre",
     "comment-edit": "Éditer",
     "comment-save": "Enregistrer",
@@ -20,7 +17,6 @@ define({
     "comment-queued": "Commentaire en attente de modération.",
     "comment-anonymous": "Anonyme",
     "comment-hidden": "1 caché\n{{ n }} cachés",
-
     "date-now": "À l'instant",
     "date-minute": "Il y a une minute\nIl y a {{ n }} minutes",
     "date-hour": "Il y a une heure\nIl y a {{ n }} heures ",

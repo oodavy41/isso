@@ -4,7 +4,6 @@ define({
     "postbox-email": "電子信箱 (非必填)",
     "postbox-website": "個人網站 (非必填)",
     "postbox-submit": "送出",
-    "postbox-notification": "收到回復郵件通知",
 
     "num-comments": "1則留言\n{{ n }}則留言",
     "no-comments": "尚無留言",
