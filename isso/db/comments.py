@@ -23,7 +23,7 @@ class Comments:
               'mode',  # status of the comment 1 = valid, 2 = pending,
                        # 4 = soft-deleted (cannot hard delete because of replies)
               'remote_addr', 'text', 'author', 'email', 'website',
-              'likes', 'dislikes', 'voters', 'notification']
+              'likes', 'dislikes', 'voters', 'notificationsss']
 
     def __init__(self, db):
 
@@ -34,7 +34,7 @@ class Comments:
             '    created FLOAT NOT NULL, modified FLOAT, mode INTEGER, remote_addr VARCHAR,',
             '    text VARCHAR, author VARCHAR, email VARCHAR, website VARCHAR,',
             '    likes INTEGER DEFAULT 0, dislikes INTEGER DEFAULT 0, voters BLOB NOT NULL,',
-            '    notification INTEGER);'])
+            '    notificationsss INTEGER);'])
 
     def add(self, uri, c):
         """
@@ -51,7 +51,7 @@ class Comments:
             'INSERT INTO comments (',
             '    tid, parent,'
             '    created, modified, mode, remote_addr,',
-            '    text, author, email, website, voters, notification )',
+            '    text, author, email, website, voters, notificationsss )',
             'SELECT',
             '    threads.id, ?,',
             '    ?, ?, ?, ?,',
@@ -60,7 +60,7 @@ class Comments:
             c.get('parent'),
             c.get('created') or time.time(), None, c["mode"], c['remote_addr'],
             c['text'], c.get('author'), c.get('email'), c.get('website'), buffer(
-                Bloomfilter(iterable=[c['remote_addr']]).array), c.get('notification', 0),
+                Bloomfilter(iterable=[c['remote_addr']]).array), c.get('notificationsss', 0),
             uri)
         )
 
