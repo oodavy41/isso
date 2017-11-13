@@ -57,7 +57,7 @@ class Comments:
             '    ?, ?, ?, ?, ?',
             'FROM threads WHERE threads.uri = ?;'], (
             c.get('parent'),
-            c.get('created') or time.time(), None, c["mode"], c["subscribe"], c['remote_addr'],
+            c.get('created') or time.time(), None, c["mode"], c.get["subscribe"], c['remote_addr'],
             c['text'], c.get('author'), c.get('email'), c.get('website'), buffer(
                 Bloomfilter(iterable=[c['remote_addr']]).array),
             uri)
