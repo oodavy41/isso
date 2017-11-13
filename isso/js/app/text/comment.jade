@@ -8,7 +8,7 @@ div(class=(comment.hash == conf.blogauthor) ? 'isso-comment isso-highlight' : 'i
     div(class='text-wrapper')
         div(class='isso-comment-header' role='meta')
             if bool(comment.website)
-                a(class='author' href='#{comment.website}' rel='nofollow')
+                a(class='author' href='#{comment.website}' rel='external nofollow' target='_blank')
                     = bool(comment.author) ? comment.author : i18n('comment-anonymous')
             else
                 span(class='author')
