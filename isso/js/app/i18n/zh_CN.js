@@ -4,6 +4,8 @@ define({
     "postbox-email": "E-mail (可选)",
     "postbox-website": "网站 (可选)",
     "postbox-submit": "提交",
+    "postbox-subscribe": "订阅",
+
 
     "num-comments": "1条评论\n{{ n }}条评论",
     "no-comments": "还没有评论",
