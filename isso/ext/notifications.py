@@ -124,12 +124,12 @@ class SMTP(object):
 
         #body = self.format(thread, comment)
         if "parent" in comment:
-            comment = self.isso.db.comments.get(comment["parent"])
+            comment_parent = self.isso.db.comments.get(comment["parent"])
             # Notify the author that a new comment is posted if requested
-            if comment and "email" in comment and comment["subscribe"]:
+            if comment_parent and "email" in comment_parent and comment_parent["subscribe"]:
                 body = self.format(thread, comment, adminsh=False)
                 subject = "Re: New comment posted on %s" % thread["title"]
-                self.sendmail(subject, body, thread, comment, to=comment["email"])
+                self.sendmail(subject, body, thread, comment, to=comment_parent["email"])
 
         body = self.format(thread, comment, adminsh=True)
         self.sendmail(thread["title"], body, thread, comment)
