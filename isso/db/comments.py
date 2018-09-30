@@ -19,11 +19,24 @@ class Comments:
     The tuple (tid, id) is unique and thus primary key.
     """
 
-    fields = ['tid', 'id', 'parent', 'created', 'modified',
-              'mode',  # status of the comment 1 = valid, 2 = pending,
-                       # 4 = soft-deleted (cannot hard delete because of replies)
-              'remote_addr', 'text', 'author', 'email', 'website',
-              'likes', 'dislikes', 'voters']
+    fields = [
+        'tid',
+        'id',
+        'parent',
+        'created',
+        'modified',
+        'mode',  # status of the comment 1 = valid, 2 = pending,
+        # 4 = soft-deleted (cannot hard delete because of replies)
+        'remote_addr',
+        'text',
+        'author',
+        'email',
+        'website',
+        'likes',
+        'dislikes',
+        'voters',
+        'notification'
+    ]
 
     def __init__(self, db):
 
@@ -33,7 +46,9 @@ class Comments:
             '    tid REFERENCES threads(id), id INTEGER PRIMARY KEY, parent INTEGER,',
             '    created FLOAT NOT NULL, modified FLOAT, mode INTEGER, remote_addr VARCHAR,',
             '    text VARCHAR, author VARCHAR, email VARCHAR, website VARCHAR,',
-            '    likes INTEGER DEFAULT 0, dislikes INTEGER DEFAULT 0, voters BLOB NOT NULL);'])
+            '    likes INTEGER DEFAULT 0, dislikes INTEGER DEFAULT 0, voters BLOB NOT NULL,',
+            '    notification INTEGER);'
+        ])
 
     def add(self, uri, c):
         """
@@ -46,35 +61,32 @@ class Comments:
             if ref.get("parent") is not None:
                 c["parent"] = ref["parent"]
 
-        self.db.execute([
-            'INSERT INTO comments (',
-            '    tid, parent,'
-            '    created, modified, mode, remote_addr,',
-            '    text, author, email, website, voters )',
-            'SELECT',
-            '    threads.id, ?,',
-            '    ?, ?, ?, ?,',
-            '    ?, ?, ?, ?, ?',
-            'FROM threads WHERE threads.uri = ?;'], (
-            c.get('parent'),
-            c.get('created') or time.time(), None, c["mode"], c['remote_addr'],
-            c['text'], c.get('author'), c.get('email'), c.get('website'), buffer(
-                Bloomfilter(iterable=[c['remote_addr']]).array),
-            uri)
-        )
+        self.db.execute(
+            [
+                'INSERT INTO comments (', '    tid, parent,'
+                '    created, modified, mode, remote_addr,',
+                '    text, author, email, website, voters, notification)', 'SELECT',
+                '    threads.id, ?,', '    ?, ?, ?, ?,', '    ?, ?, ?, ?, ?, ?',
+                'FROM threads WHERE threads.uri = ?;'
+            ], (c.get('parent'), c.get('created') or time.time(), None,
+                c["mode"], c['remote_addr'], c['text'], c.get('author'),
+                c.get('email'), c.get('website'),
+                buffer(Bloomfilter(iterable=[c['remote_addr']]).array), c.get('notification', 0), uri))
 
-        return dict(zip(Comments.fields, self.db.execute(
-            'SELECT *, MAX(c.id) FROM comments AS c INNER JOIN threads ON threads.uri = ?',
-            (uri, )).fetchone()))
+        return dict(
+            zip(
+                Comments.fields,
+                self.db.execute(
+                    'SELECT *, MAX(c.id) FROM comments AS c INNER JOIN threads ON threads.uri = ?',
+                    (uri, )).fetchone()))
 
     def activate(self, id):
         """
         Activate comment id if pending.
         """
-        self.db.execute([
-            'UPDATE comments SET',
-            '    mode=1',
-            'WHERE id=? AND mode=2'], (id, ))
+        self.db.execute(
+            ['UPDATE comments SET', '    mode=1', 'WHERE id=? AND mode=2'],
+            (id, ))
 
     def update(self, id, data):
         """
@@ -82,10 +94,10 @@ class Comments:
         updated comment.
         """
         self.db.execute([
-            'UPDATE comments SET',
-                ','.join(key + '=' + '?' for key in data),
-            'WHERE id=?;'],
-            list(data.values()) + [id])
+            'UPDATE comments SET', ','.join(key + '=' + '?'
+                                            for key in data), 'WHERE id=?;'
+        ],
+                        list(data.values()) + [id])
 
         return self.get(id)
 
@@ -94,7 +106,8 @@ class Comments:
         Search for comment :param:`id` and return a mapping of :attr:`fields`
         and values.
         """
-        rv = self.db.execute('SELECT * FROM comments WHERE id=?', (id, )).fetchone()
+        rv = self.db.execute('SELECT * FROM comments WHERE id=?',
+                             (id, )).fetchone()
         if rv:
             return dict(zip(Comments.fields, rv))
 
@@ -109,19 +122,27 @@ class Comments:
             'GROUP BY comments.mode').fetchall()
         return dict(comment_count)
 
-    def fetchall(self, mode=5, after=0, parent='any', order_by='id',
-                 limit=100, page=0, asc=1):
+    def fetchall(self,
+                 mode=5,
+                 after=0,
+                 parent='any',
+                 order_by='id',
+                 limit=100,
+                 page=0,
+                 asc=1):
         """
         Return comments for admin with :param:`mode`.
         """
-        fields_comments = ['tid', 'id', 'parent', 'created', 'modified',
-                           'mode', 'remote_addr', 'text', 'author',
-                           'email', 'website', 'likes', 'dislikes']
+        fields_comments = [
+            'tid', 'id', 'parent', 'created', 'modified', 'mode',
+            'remote_addr', 'text', 'author', 'email', 'website', 'likes',
+            'dislikes'
+        ]
         fields_threads = ['uri', 'title']
-        sql_comments_fields = ', '.join(['comments.' + f
-                                         for f in fields_comments])
-        sql_threads_fields = ', '.join(['threads.' + f
-                                        for f in fields_threads])
+        sql_comments_fields = ', '.join(
+            ['comments.' + f for f in fields_comments])
+        sql_threads_fields = ', '.join(
+            ['threads.' + f for f in fields_threads])
         sql = ['SELECT ' + sql_comments_fields + ', ' + \
                sql_threads_fields + ' '
                'FROM comments INNER JOIN threads '
@@ -137,7 +158,9 @@ class Comments:
                 sql_args.append(parent)
 
         # custom sanitization
-        if order_by not in ['id', 'created', 'modified', 'likes', 'dislikes', 'tid']:
+        if order_by not in [
+                'id', 'created', 'modified', 'likes', 'dislikes', 'tid'
+        ]:
             sql.append('ORDER BY ')
             sql.append("comments.created")
             if not asc:
@@ -158,13 +181,21 @@ class Comments:
         for item in rv:
             yield dict(zip(fields_comments + fields_threads, item))
 
-    def fetch(self, uri, mode=5, after=0, parent='any', order_by='id', limit=None):
+    def fetch(self,
+              uri,
+              mode=5,
+              after=0,
+              parent='any',
+              order_by='id',
+              limit=None):
         """
         Return comments for :param:`uri` with :param:`mode`.
         """
-        sql = [ 'SELECT comments.* FROM comments INNER JOIN threads ON',
-                '    threads.uri=? AND comments.tid=threads.id AND (? | comments.mode) = ?',
-                '    AND comments.created>?']
+        sql = [
+            'SELECT comments.* FROM comments INNER JOIN threads ON',
+            '    threads.uri=? AND comments.tid=threads.id AND (? | comments.mode) = ?',
+            '    AND comments.created>?'
+        ]
 
         sql_args = [uri, mode, mode, after]
 
@@ -192,14 +223,9 @@ class Comments:
 
     def _remove_stale(self):
 
-        sql = ('DELETE FROM',
-               '    comments',
-               'WHERE',
-               '    mode=4 AND id NOT IN (',
-               '        SELECT',
-               '            parent',
-               '        FROM',
-               '            comments',
+        sql = ('DELETE FROM', '    comments', 'WHERE',
+               '    mode=4 AND id NOT IN (', '        SELECT',
+               '            parent', '        FROM', '            comments',
                '        WHERE parent IS NOT NULL)')
 
         while self.db.execute(sql).rowcount:
@@ -216,7 +242,8 @@ class Comments:
         In the second case this comment can be safely removed without any side
         effects."""
 
-        refs = self.db.execute('SELECT * FROM comments WHERE parent=?', (id, )).fetchone()
+        refs = self.db.execute('SELECT * FROM comments WHERE parent=?',
+                               (id, )).fetchone()
 
         if refs is None:
             self.db.execute('DELETE FROM comments WHERE id=?', (id, ))
@@ -226,7 +253,8 @@ class Comments:
         self.db.execute('UPDATE comments SET text=? WHERE id=?', ('', id))
         self.db.execute('UPDATE comments SET mode=? WHERE id=?', (4, id))
         for field in ('author', 'website'):
-            self.db.execute('UPDATE comments SET %s=? WHERE id=?' % field, (None, id))
+            self.db.execute('UPDATE comments SET %s=? WHERE id=?' % field,
+                            (None, id))
 
         self._remove_stale()
         return self.get(id)
@@ -253,10 +281,10 @@ class Comments:
 
         bf.add(remote_addr)
         self.db.execute([
-            'UPDATE comments SET',
-            '    likes = likes + 1,' if upvote else 'dislikes = dislikes + 1,',
-            '    voters = ?'
-            'WHERE id=?;'], (buffer(bf.array), id))
+            'UPDATE comments SET', '    likes = likes + 1,'
+            if upvote else 'dislikes = dislikes + 1,', '    voters = ?'
+            'WHERE id=?;'
+        ], (buffer(bf.array), id))
 
         if upvote:
             return {'likes': likes + 1, 'dislikes': dislikes}
@@ -267,12 +295,13 @@ class Comments:
         Return comment count for main thread and all reply threads for one url.
         """
 
-        sql = ['SELECT comments.parent,count(*)',
-               'FROM comments INNER JOIN threads ON',
-               '   threads.uri=? AND comments.tid=threads.id AND',
-               '   (? | comments.mode = ?) AND',
-               '   comments.created > ?',
-               'GROUP BY comments.parent']
+        sql = [
+            'SELECT comments.parent,count(*)',
+            'FROM comments INNER JOIN threads ON',
+            '   threads.uri=? AND comments.tid=threads.id AND',
+            '   (? | comments.mode = ?) AND', '   comments.created > ?',
+            'GROUP BY comments.parent'
+        ]
 
         return dict(self.db.execute(sql, [url, mode, mode, after]).fetchall())
 
@@ -281,11 +310,12 @@ class Comments:
         Return comment count for one ore more urls..
         """
 
-        threads = dict(self.db.execute([
-            'SELECT threads.uri, COUNT(comments.id) FROM comments',
-            'LEFT OUTER JOIN threads ON threads.id = tid AND comments.mode = 1',
-            'GROUP BY threads.uri'
-        ]).fetchall())
+        threads = dict(
+            self.db.execute([
+                'SELECT threads.uri, COUNT(comments.id) FROM comments',
+                'LEFT OUTER JOIN threads ON threads.id = tid AND comments.mode = 1',
+                'GROUP BY threads.uri'
+            ]).fetchall())
 
         return [threads.get(url, 0) for url in urls]
 
@@ -293,7 +323,7 @@ class Comments:
         """
         Remove comments older than :param:`delta`.
         """
-        self.db.execute([
-            'DELETE FROM comments WHERE mode = 2 AND ? - created > ?;'
-        ], (time.time(), delta))
+        self.db.execute(
+            ['DELETE FROM comments WHERE mode = 2 AND ? - created > ?;'],
+            (time.time(), delta))
         self._remove_stale()

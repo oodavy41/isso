@@ -32,7 +32,6 @@ else:
 
 
 class SMTP(object):
-
     def __init__(self, isso):
 
         self.isso = isso
@@ -46,6 +45,7 @@ class SMTP(object):
             logger.exception("unable to connect to SMTP server")
 
         if uwsgi:
+
             def spooler(args):
                 try:
                     self._sendmail(args[b"subject"].decode("utf-8"),
@@ -58,10 +58,14 @@ class SMTP(object):
             uwsgi.spooler = spooler
 
     def __enter__(self):
-        klass = (smtplib.SMTP_SSL if self.conf.get('security') == 'ssl' else smtplib.SMTP)
-        self.client = klass(host=self.conf.get('host'),
-                            port=self.conf.getint('port'),
-                            timeout=self.conf.getint('timeout'))
+        klass = (smtplib.SMTP_SSL
+                 if self.conf.get('security') == 'ssl' else smtplib.SMTP)
+        self.client = klass(
+            host=self.conf.get('host'),
+            port=self.conf.getint('port'),
+            timeout=self.conf.getint('timeout'))
+        self.client.set_debuglevel(1)
+        #self.client.ehlo()
 
         if self.conf.get('security') == 'starttls':
             if sys.version_info >= (3, 4):
@@ -74,8 +78,8 @@ class SMTP(object):
         password = self.conf.get('password')
         if username and password:
             if PY2K:
-                username = username.encode('ascii')
-                password = password.encode('ascii')
+                username = username.encode('ascii', errors='ignore')
+                password = password.encode('ascii', errors='ignore')
 
             self.client.login(username, password)
 
@@ -87,7 +91,7 @@ class SMTP(object):
     def __iter__(self):
         yield "comments.new:after-save", self.notify
 
-    def format(self, thread, comment):
+    def format(self, thread, comment, admin=False):
 
         rv = io.StringIO()
 
@@ -100,39 +104,56 @@ class SMTP(object):
         rv.write(comment["text"] + "\n")
         rv.write("\n")
 
-        if comment["website"]:
-            rv.write("User's URL: %s\n" % comment["website"])
+        if admin:
+            if comment["website"]:
+                rv.write("User's URL: %s\n" % comment["website"])
+            rv.write("IP address: %s\n" % comment["remote_addr"])
+            rv.write(
+                "Link to comment: %s\n" %
+                (local("origin") + thread["uri"] + "#isso-%i" % comment["id"]))
+            rv.write("\n")
 
-        rv.write("IP address: %s\n" % comment["remote_addr"])
-        rv.write("Link to comment: %s\n" % (local("origin") + thread["uri"] + "#isso-%i" % comment["id"]))
-        rv.write("\n")
+            uri = local("host") + "/id/%i" % comment["id"]
+            key = self.isso.sign(comment["id"])
 
-        uri = local("host") + "/id/%i" % comment["id"]
-        key = self.isso.sign(comment["id"])
+            rv.write("---\n")
+            rv.write("Delete comment: %s\n" % (uri + "/delete/" + key))
 
-        rv.write("---\n")
-        rv.write("Delete comment: %s\n" % (uri + "/delete/" + key))
-
-        if comment["mode"] == 2:
-            rv.write("Activate comment: %s\n" % (uri + "/activate/" + key))
+            if comment["mode"] == 2:
+                rv.write("Activate comment: %s\n" % (uri + "/activate/" + key))
 
         rv.seek(0)
         return rv.read()
 
     def notify(self, thread, comment):
 
-        body = self.format(thread, comment)
+        if "parent" in comment:
+            comment_parent = self.isso.db.comments.get(comment["parent"])
+            # Notify the author that a new comment is posted if requested
+            if comment_parent and "email" in comment_parent and comment_parent["notification"]:
+                body = self.format(thread, comment, admin=False)
+                subject = "Re: New comment posted on %s" % thread["title"]
+                self.sendmail(
+                    subject, body, thread, comment, to=comment_parent["email"])
+        time.sleep(2)
+        body = self.format(thread, comment, admin=True)
+        self.sendmail(thread["title"], body, thread, comment)
 
+    def sendmail(self, subject, body, thread, comment, to=None):
+        print('mail', body, to)
         if uwsgi:
-            uwsgi.spool({b"subject": thread["title"].encode("utf-8"),
-                         b"body": body.encode("utf-8")})
+            uwsgi.spool({
+                b"subject": subject.encode("utf-8"),
+                b"body": body.encode("utf-8"),
+                b"to": to
+            })
         else:
-            start_new_thread(self._retry, (thread["title"], body))
+            start_new_thread(self._retry, (subject, body, to))
 
-    def _sendmail(self, subject, body):
+    def _sendmail(self, subject, body, to=None):
 
         from_addr = self.conf.get("from")
-        to_addr = self.conf.get("to")
+        to_addr = to or self.conf.get("to")
 
         msg = MIMEText(body, 'plain', 'utf-8')
         msg['From'] = from_addr
@@ -143,10 +164,10 @@ class SMTP(object):
         with self as con:
             con.sendmail(from_addr, to_addr, msg.as_string())
 
-    def _retry(self, subject, body):
+    def _retry(self, subject, body, to):
         for x in range(5):
             try:
-                self._sendmail(subject, body)
+                self._sendmail(subject, body, to)
             except smtplib.SMTPConnectError:
                 time.sleep(60)
             else:
@@ -154,7 +175,6 @@ class SMTP(object):
 
 
 class Stdout(object):
-
     def __init__(self, conf):
         pass
 
@@ -173,7 +193,8 @@ class Stdout(object):
         logger.info("comment created: %s", json.dumps(comment))
 
     def _edit_comment(self, comment):
-        logger.info('comment %i edited: %s', comment["id"], json.dumps(comment))
+        logger.info('comment %i edited: %s', comment["id"],
+                    json.dumps(comment))
 
     def _delete_comment(self, id):
         logger.info('comment %i deleted', id)

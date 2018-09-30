@@ -4,6 +4,7 @@ define({
     "postbox-email": "E-mail (可选)",
     "postbox-website": "网站 (可选)",
     "postbox-submit": "提交",
+    "postbox-notification": "接受回复提醒",
 
     "num-comments": "1条评论\n{{ n }}条评论",
     "no-comments": "还没有评论",
@@ -26,5 +27,7 @@ define({
     "date-day": "昨天\n{{ n }}天前",
     "date-week": "上周\n{{ n }}周前",
     "date-month": "上个月\n{{ n }}个月前",
-    "date-year": "去年\n{{ n }}年前"
+    "date-year": "去年\n{{ n }}年前",
+
+    "validate-message":"评论失败，请检查信息。"
 });

@@ -4,6 +4,7 @@ define({
     "postbox-email": "E-mail (optional)",
     "postbox-website": "Website (optional)",
     "postbox-submit": "Submit",
+    "postbox-notification": "Subscribe to email notification of replies",
 
     "num-comments": "One Comment\n{{ n }} Comments",
     "no-comments": "No Comments Yet",
@@ -26,5 +27,7 @@ define({
     "date-day": "Yesterday\n{{ n }} days ago",
     "date-week": "last week\n{{ n }} weeks ago",
     "date-month": "last month\n{{ n }} months ago",
-    "date-year": "last year\n{{ n }} years ago"
+    "date-year": "last year\n{{ n }} years ago",
+
+    "validate-message":"Publish failed, please check your information."
 });

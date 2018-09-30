@@ -21,8 +21,7 @@ from werkzeug.contrib.securecookie import SecureCookie
 from isso.compat import text_type as str
 
 from isso import utils, local
-from isso.utils import (http, parse, JSONResponse as JSON,
-                        render_template)
+from isso.utils import (http, parse, JSONResponse as JSON, render_template)
 from isso.views import requires
 from isso.utils.hash import sha1
 from isso.utils.hash import md5
@@ -36,7 +35,8 @@ __url_re = re.compile(
     r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)'
-    r'$', re.IGNORECASE)
+    r'$',
+    re.IGNORECASE)
 
 
 def isurl(text):
@@ -66,7 +66,8 @@ def xhr(func):
 
     def dec(self, env, req, *args, **kwargs):
 
-        if req.content_type and not req.content_type.startswith("application/json"):
+        if req.content_type and not req.content_type.startswith(
+                "application/json"):
             raise Forbidden("CSRF")
         return func(self, env, req, *args, **kwargs)
 
@@ -75,29 +76,39 @@ def xhr(func):
 
 class API(object):
 
-    FIELDS = set(['id', 'parent', 'text', 'author', 'website',
-                  'mode', 'created', 'modified', 'likes', 'dislikes', 'hash', 'gravatar_image'])
+    FIELDS = set([
+        'id', 'parent', 'text', 'author', 'website', 'mode', 'created',
+        'modified', 'likes', 'dislikes', 'hash', 'gravatar_image',
+        'notification'
+    ])
 
     # comment fields, that can be submitted
-    ACCEPT = set(['text', 'author', 'website', 'email', 'parent', 'title'])
+    ACCEPT = set([
+        'text', 'author', 'website', 'email', 'parent', 'title', 'notification'
+    ])
 
     VIEWS = [
-        ('fetch',   ('GET', '/')),
-        ('new',     ('POST', '/new')),
-        ('count',   ('GET', '/count')),
-        ('counts',  ('POST', '/count')),
-        ('author',  ('GET', '/author')),
-        ('view',    ('GET', '/id/<int:id>')),
-        ('edit',    ('PUT', '/id/<int:id>')),
-        ('delete',  ('DELETE', '/id/<int:id>')),
-        ('moderate',('GET',  '/id/<int:id>/<any(edit,activate,delete):action>/<string:key>')),
-        ('moderate',('POST', '/id/<int:id>/<any(edit,activate,delete):action>/<string:key>')),
-        ('like',    ('POST', '/id/<int:id>/like')),
-        ('dislike', ('POST', '/id/<int:id>/dislike')),
-        ('demo',    ('GET', '/demo')),
-        ('preview', ('POST', '/preview')),
-        ('login',   ('POST', '/login')),
-        ('admin',   ('GET', '/admin'))
+        ('fetch', ('GET', '/')), ('new', ('POST', '/new')),
+        ('count', ('GET', '/count')), ('counts', ('POST', '/count')),
+        ('author', ('GET', '/author')), ('view', ('GET', '/id/<int:id>')),
+        ('edit', ('PUT',
+                  '/id/<int:id>')), ('delete', ('DELETE', '/id/<int:id>')),
+        ('moderate',
+         ('GET',
+          '/id/<int:id>/<any(edit,activate,delete):action>/<string:key>')),
+        ('moderate',
+         ('POST',
+          '/id/<int:id>/<any(edit,activate,delete):action>/<string:key>')),
+        ('like', ('POST', '/id/<int:id>/like')), ('dislike',
+                                                  ('POST',
+                                                   '/id/<int:id>/dislike')),
+        ('demo', ('GET', '/demo')), ('preview',
+                                     ('POST',
+                                      '/preview')), ('login',
+                                                     ('POST',
+                                                      '/login')), ('admin',
+                                                                   ('GET',
+                                                                    '/admin'))
     ]
 
     def __init__(self, isso, hasher):
@@ -204,14 +215,17 @@ class API(object):
         # notify extension, that the new comment has been successfully saved
         self.signal("comments.new:after-save", thread, rv)
 
-        cookie = functools.partial(dump_cookie,
+        cookie = functools.partial(
+            dump_cookie,
             value=self.isso.sign([rv["id"], sha1(rv["text"])]),
             max_age=self.conf.getint('max-age'))
 
         rv["text"] = self.isso.render(rv["text"])
         rv["hash"] = self.hash(rv['email'] or rv['remote_addr'])
 
-        self.cache.set('hash', (rv['email'] or rv['remote_addr']).encode('utf-8'), rv['hash'])
+        self.cache.set('hash', (rv['email']
+                                or rv['remote_addr']).encode('utf-8'),
+                       rv['hash'])
 
         rv = self._add_gravatar_image(rv)
 
@@ -273,9 +287,10 @@ class API(object):
 
         self.signal("comments.edit", rv)
 
-        cookie = functools.partial(dump_cookie,
-                value=self.isso.sign([rv["id"], sha1(rv["text"])]),
-                max_age=self.conf.getint('max-age'))
+        cookie = functools.partial(
+            dump_cookie,
+            value=self.isso.sign([rv["id"], sha1(rv["text"])]),
+            max_age=self.conf.getint('max-age'))
 
         rv["text"] = self.isso.render(rv["text"])
 
@@ -304,7 +319,8 @@ class API(object):
         if item is None:
             raise NotFound
 
-        self.cache.delete('hash', (item['email'] or item['remote_addr']).encode('utf-8'))
+        self.cache.delete('hash', (item['email']
+                                   or item['remote_addr']).encode('utf-8'))
 
         with self.isso.lock:
             rv = self.comments.delete(id)
@@ -333,17 +349,16 @@ class API(object):
             raise NotFound
 
         if request.method == "GET":
-            modal = (
-                "<!DOCTYPE html>"
-                "<html>"
-                "<head>"
-                "<script>"
-                "  if (confirm('%s: Are you sure?')) {"
-                "      xhr = new XMLHttpRequest;"
-                "      xhr.open('POST', window.location.href);"
-                "      xhr.send(null);"
-                "  }"
-                "</script>" % action.capitalize())
+            modal = ("<!DOCTYPE html>"
+                     "<html>"
+                     "<head>"
+                     "<script>"
+                     "  if (confirm('%s: Are you sure?')) {"
+                     "      xhr = new XMLHttpRequest;"
+                     "      xhr.open('POST', window.location.href);"
+                     "      xhr.send(null);"
+                     "  }"
+                     "</script>" % action.capitalize())
 
             return Response(modal, 200, content_type="text/html")
 
@@ -363,17 +378,15 @@ class API(object):
         else:
             with self.isso.lock:
                 self.comments.delete(id)
-            self.cache.delete('hash', (item['email'] or item['remote_addr']).encode('utf-8'))
+            self.cache.delete('hash', (item['email']
+                                       or item['remote_addr']).encode('utf-8'))
             self.signal("comments.delete", id)
             return Response("Yo", 200)
 
     @requires(str, 'uri')
     def fetch(self, environ, request, uri):
 
-        args = {
-            'uri': uri,
-            'after': request.args.get('after', 0)
-        }
+        args = {'uri': uri, 'after': request.args.get('after', 0)}
 
         try:
             args['limit'] = int(request.args.get('limit'))
@@ -414,10 +427,10 @@ class API(object):
             return BadRequest("nested_limit should be integer")
 
         rv = {
-            'id'             : root_id,
-            'total_replies'  : reply_counts[root_id],
-            'hidden_replies' : reply_counts[root_id] - len(root_list),
-            'replies'        : self._process_fetched_list(root_list, plain)
+            'id': root_id,
+            'total_replies': reply_counts[root_id],
+            'hidden_replies': reply_counts[root_id] - len(root_list),
+            'replies': self._process_fetched_list(root_list, plain)
         }
         # We are only checking for one level deep comments
         if root_id is None:
@@ -438,10 +451,12 @@ class API(object):
                     comment['total_replies'] = 0
                     replies = []
 
-                comment['hidden_replies'] = comment['total_replies'] - len(replies)
+                comment[
+                    'hidden_replies'] = comment['total_replies'] - len(replies)
                 comment['replies'] = self._process_fetched_list(replies, plain)
 
         return JSON(rv, 200)
+
     def _add_gravatar_image(self, item):
         if not self.conf.getboolean('gravatar'):
             return item
@@ -452,6 +467,7 @@ class API(object):
         gravatar_url = self.conf.get('gravatar-url')
         item['gravatar_image'] = gravatar_url.format(email_md5_hash)
         return item
+
     def _process_fetched_list(self, fetched_list, plain=False):
         for item in fetched_list:
 
@@ -478,13 +494,15 @@ class API(object):
     @xhr
     def like(self, environ, request, id):
 
-        nv = self.comments.vote(True, id, utils.anonymize(str(request.remote_addr)))
+        nv = self.comments.vote(True, id,
+                                utils.anonymize(str(request.remote_addr)))
         return JSON(nv, 200)
 
     @xhr
     def dislike(self, environ, request, id):
 
-        nv = self.comments.vote(False, id, utils.anonymize(str(request.remote_addr)))
+        nv = self.comments.vote(False, id,
+                                utils.anonymize(str(request.remote_addr)))
         return JSON(nv, 200)
 
     # TODO: remove someday (replaced by :func:`counts`)
@@ -502,7 +520,8 @@ class API(object):
 
         data = request.get_json()
 
-        if not isinstance(data, list) and not all(isinstance(x, str) for x in data):
+        if not isinstance(data, list) and not all(
+                isinstance(x, str) for x in data):
             raise BadRequest("JSON must be a list of URLs")
 
         return JSON(self.comments.count(*data), 200)
@@ -531,9 +550,13 @@ class API(object):
         data = req.form
         password = self.isso.conf.get("general", "admin_password")
         if data['password'] and data['password'] == password:
-            response = redirect(get_current_url(env, host_only=True) + '/admin')
-            cookie = functools.partial(dump_cookie,
-                value=self.isso.sign({"logged": True}),
+            response = redirect(
+                get_current_url(env, host_only=True) + '/admin')
+            cookie = functools.partial(
+                dump_cookie,
+                value=self.isso.sign({
+                    "logged": True
+                }),
                 expires=datetime.now() + timedelta(1))
             response.headers.add("Set-Cookie", cookie("admin-session"))
             response.headers.add("X-Set-Cookie", cookie("isso-admin-session"))
@@ -543,8 +566,8 @@ class API(object):
 
     def admin(self, env, req):
         try:
-            data = self.isso.unsign(req.cookies.get('admin-session', ''),
-                                    max_age=60 * 60 * 24)
+            data = self.isso.unsign(
+                req.cookies.get('admin-session', ''), max_age=60 * 60 * 24)
         except BadSignature:
             return render_template('login.html')
         if not data or not data['logged']:
@@ -554,18 +577,21 @@ class API(object):
         order_by = req.args.get('order_by', None)
         asc = int(req.args.get('asc', 1))
         mode = int(req.args.get('mode', 2))
-        comments = self.comments.fetchall(mode=mode, page=page,
-                                          limit=page_size,
-                                          order_by=order_by,
-                                          asc=asc)
+        comments = self.comments.fetchall(
+            mode=mode, page=page, limit=page_size, order_by=order_by, asc=asc)
         comments_enriched = []
         for comment in list(comments):
             comment['hash'] = self.isso.sign(comment['id'])
             comments_enriched.append(comment)
         comment_mode_count = self.comments.count_modes()
         max_page = int(sum(comment_mode_count.values()) / 100)
-        return render_template('admin.html', comments=comments_enriched,
-                               page=int(page), mode=int(mode),
-                               conf=self.conf, max_page=max_page,
-                               counts=comment_mode_count,
-                               order_by=order_by, asc=asc)
+        return render_template(
+            'admin.html',
+            comments=comments_enriched,
+            page=int(page),
+            mode=int(mode),
+            conf=self.conf,
+            max_page=max_page,
+            counts=comment_mode_count,
+            order_by=order_by,
+            asc=asc)
