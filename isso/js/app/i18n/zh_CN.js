@@ -29,5 +29,5 @@ define({
     "date-month": "上个月\n{{ n }}个月前",
     "date-year": "去年\n{{ n }}年前",
 
-    "validate-message":"评论失败，请检查信息。"
+    "validate-message":"评论失败，请检查信息。",
 });

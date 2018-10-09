@@ -29,5 +29,5 @@ define({
     "date-month": "last month\n{{ n }} months ago",
     "date-year": "last year\n{{ n }} years ago",
 
-    "validate-message":"Publish failed, please check your information."
+    "validate-message":"Publish failed, please check your information.",
 });

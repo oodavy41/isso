@@ -1,0 +1,163 @@
+/* -------------------------------------
+    GLOBAL
+    A very basic CSS reset
+------------------------------------- */
+* {
+  margin: 0;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bolder;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: none;
+  width: 100% !important;
+  height: 100%;
+  line-height: 1.6em;
+  /* 1.6em * 14px = 22.4px, use px to get airier line-height also in Thunderbird, and Yahoo!, Outlook.com, AOL webmail clients */
+  /*line-height: 22px;*/
+}
+
+/* Let's make sure all tables have defaults */
+table td {
+  vertical-align: top;
+}
+
+/* -------------------------------------
+    BODY & CONTAINER
+------------------------------------- */
+body {
+  background-color: #f2f2f2;
+  color: rgb(243, 243, 241);
+}
+
+.body-wrap {
+  margin: 3%;
+  padding: 15px;
+  width: 94%;
+  background-image: url(https://files.catbox.moe/18ajzz.jpg);
+  background-size: 50%;
+}
+
+
+.content {
+  max-width: 600px;
+  margin: 0 auto;
+  display: block;
+  padding: 20px;
+}
+.title{
+  float: right;
+}
+
+/* -------------------------------------
+    HEADER, FOOTER, MAIN
+------------------------------------- */
+.main {
+  background-color: rgba(246, 246, 246, 0.1);
+  border-radius: 3px;
+}
+
+.content-wrap {
+  padding: 20px;
+}
+
+.content-block {
+  padding: 0 0 20px;
+}
+
+.header {
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.footer {
+  width: 100%;
+  clear: both;
+  color: #999;
+  text-align: center;
+}
+
+.footer p,
+.footer a,
+.footer td {
+  color: rgb(27, 60, 89);
+  font-size: 12px;
+}
+
+p,
+ul,
+ol {
+  font-weight: normal;
+}
+
+q{
+  margin-left: 20px;
+  color: rgb(166, 237, 142);
+}
+
+p li,
+ul li,
+ol li {
+  margin-left: 5px;
+  list-style-position: inside;
+}
+
+/* -------------------------------------
+    LINKS & BUTTONS
+------------------------------------- */
+a {
+  color: rgb(200, 243, 190);
+  text-decoration: none;
+}
+
+a:hover {
+  color: rgb(166, 237, 142);
+}
+
+.btn-primary {
+  text-decoration: none;
+  color: rgb(27, 60, 89);
+  background-color: rgb(166, 237, 142);
+  float: right;
+  margin: 30px 50px 0 0;
+  border: solid rgb(166, 237, 142);
+  border-width: 5px 7px;
+  line-height: 2em;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  display: inline-block;
+  border-radius: 5px;
+  text-transform: capitalize;
+}
+
+.btn-primary:hover{
+  color: rgb(107, 151, 192);
+  background-color: rgb(166, 237, 142);
+}
+
+
+/* -------------------------------------
+    RESPONSIVE AND MOBILE FRIENDLY STYLES
+------------------------------------- */
+@media only screen and (max-width: 640px) {
+  body {
+    padding: 0 !important;
+  }
+
+
+  .content {
+    padding: 0 !important;
+  }
+
+  .content-wrap {
+    padding: 10px !important;
+  }
+
+  .invoice {
+    width: 100% !important;
+  }
+}
